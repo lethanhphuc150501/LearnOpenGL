@@ -72,40 +72,44 @@ int main() {
         
     }
     glUseProgram(shaderProgram);
-    float input[] = {
-    //  Position_A(0)   Position_B(1)
-    //  0  1            2  3
-        0, 0,           0, 0,
-        0, 1,           0, -1,
-        1, 0,           -1, 0
+    float input[] = {       // Dữ liệu thô
+        0, 0,       // A0 - B0
+        0, 1,       // A1
+        0, -1,      // B1
+        1, 0,       // A2
+        -1, 0       // B2
+    };
+    unsigned int indice[] { // Dữ liệu cấp 2, lưu các index của dữ liệu thô
+        0, 1, 3,    // Các index tương ứng với các đỉnh của tam giác A (A0, A1, A2)
+        0, 2, 4     // Các index tương ứng với các đỉnh của tam giác B (B0, B1, B2)
     };
     unsigned int vbo_id;
-    unsigned int vao_id[2];
-    glGenBuffers(1,       // số lượng buffer
-                &vbo_id);  // ID của buffer [out]
-    glGenVertexArrays(2,        // số lượng buffer
-                    vao_id);    // ID của biến vao - dùng để lưu cấu hình nội dung các trường dữ liệu
+    unsigned int vao_id;
+    unsigned int ebo_id;
+    glGenBuffers(1, &vbo_id);
+    glGenVertexArrays(1, &vao_id);
+    glGenBuffers(1, &ebo_id);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
         glBufferData(GL_ARRAY_BUFFER, sizeof(input), input, GL_STATIC_DRAW);
-        glBindVertexArray(vao_id[0]);   // VAO[0] vẽ tam giác A
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);   // Position_A
-            glEnableVertexAttribArray(0);
-        glBindVertexArray(0);
-
-        glBindVertexArray(vao_id[1]);   // VAO[1] vẽ tam giác B
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));   // Position_B
-            glEnableVertexAttribArray(0);
+        glBindVertexArray(vao_id);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_id);  // dữ liệu về EBO phải được lưu trong VAO
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indice), indice, GL_STATIC_DRAW);
+                glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+                glEnableVertexAttribArray(0);
+            // Không unbind EBO khi VAO vẫn còn hoạt động
+            // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);   // unbind, kết thúc làm việc với buffer
-    
+    glPolygonMode(GL_FRONT_AND_BACK,    // áp dụng cho cả 2 mặt trước và sau
+                    GL_LINE);           // vẽ đường, không fill màu, != GL_FILL là fill màu 
     while (!glfwWindowShouldClose(window))
     {
         glClear(GL_COLOR_BUFFER_BIT);
-        glBindVertexArray(vao_id[0]);   // truyền vào VAO tương ứng với hình muốn vẽ, nếu không dùng VAO thì gọi lệnh vẽ sẽ lấy buffer được bind gần nhất
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        glBindVertexArray(vao_id[1]);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(vao_id);
+        glDrawElements(GL_TRIANGLES,    // Hàm vẽ theo EBO
+                        6,              // số index
+                        GL_UNSIGNED_INT,    // kiểu data của index
+                        0);             // don't care
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
