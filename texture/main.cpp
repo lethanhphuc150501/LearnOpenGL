@@ -20,19 +20,21 @@ int main() {
     txtr.use();
 
     float inputs[] = {
-        // positions    // texture coords
-        -1.0f, 0.0f,    0.0f, 1.0f,
-        0.0f, 0.0f,     1.0f, 1.0f,
-        0.0f, 1.0f,     1.0f, 0.0f
+        // positions    // texture coords   // color
+        -1, 0,          0, 1,               0, 0, 1,
+        0, 0,           1, 1,               1, 0, 0,
+        0, 1,           1, 0,               0, 1, 0
     };
     unsigned int vbo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(inputs), inputs, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(2 * sizeof(float)));
         glEnableVertexAttribArray(1);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(4 * sizeof(float)));
+        glEnableVertexAttribArray(2);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     unsigned int texture;
