@@ -1,7 +1,10 @@
 #ifndef GAME_H_
 #define GAME_H_
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <GL/gl.h>
+#include "sprite_renderer.h"
 
 enum GameState {
     GAME_ACTIVE,
