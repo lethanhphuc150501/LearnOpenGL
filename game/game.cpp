@@ -22,6 +22,8 @@ void Game::Init() {
     sprite->use();
     sprite->setMat4("projection", proj);
     Renderer = new SpriteRenderer(sprite);
+
+    this->Level.Load("level_data", Width, Height / 2);
 }
 
 void Game::ProcessInput(float dt) {
@@ -33,5 +35,7 @@ void Game::Update(float dt) {
 }
 
 void Game::Render() {
-    Renderer->DrawSprite(glm::vec2(200.0f, 200.0f), glm::vec2(300.0f, 400.0f), 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    if (State == GAME_ACTIVE) {
+        this->Level.Draw(*Renderer);
+    }
 }

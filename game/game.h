@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <GL/gl.h>
 #include "sprite_renderer.h"
+#include "game_level.h"
 
 enum GameState {
     GAME_ACTIVE,
@@ -14,6 +15,7 @@ enum GameState {
 
 class Game {
     public:
+        GameLevel       Level;
         GameState       State;
         bool            Keys[1024];
         unsigned int    Width, Height;
