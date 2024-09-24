@@ -20,9 +20,9 @@ const glm::vec2 INITIAL_BALL_VELOCITY(100.0f, -350.0f);
 const float BALL_RADIUS = 12.5f;
 Ball *BallObj = NULL;
 
-Game::Game(unsigned int width, unsigned int height): State(GAME_ACTIVE), Keys(), Width(width), Height(height) {
+bool CheckCollision(GameObject &obj1, GameObject &obj2);
 
-}
+Game::Game(unsigned int width, unsigned int height): State(GAME_ACTIVE), Keys(), Width(width), Height(height) {}
 
 Game::~Game() {
     if (sprite != NULL) delete sprite;
@@ -68,6 +68,7 @@ void Game::ProcessInput(float dt) {
 
 void Game::Update(float dt) {
     BallObj->Move(dt, Width);
+    this->DoCollisions();
 }
 
 void Game::Render() {
@@ -76,4 +77,15 @@ void Game::Render() {
         Player->Draw(*Renderer);
         BallObj->Draw(*Renderer);
     }
+}
+
+void Game::DoCollisions() {
+    for (GameObject &box : this->Level.Bricks)
+        if (box.Destroyed == false && CheckCollision(*BallObj, box)) box.Destroyed = true;
+}
+
+bool CheckCollision(GameObject &obj1, GameObject &obj2) {
+    bool collisionX = obj1.Position.x + obj1.Size.x >= obj2.Position.x && obj2.Position.x + obj2.Size.x >= obj1.Position.x;
+    bool collisionY = obj1.Position.y + obj1.Size.y >= obj2.Position.y && obj2.Position.y + obj2.Size.y >= obj1.Position.y;
+    return collisionX && collisionY;
 }
