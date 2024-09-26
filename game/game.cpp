@@ -78,6 +78,12 @@ void Game::ProcessInput(float dt) {
 void Game::Update(float dt) {
     BallObj->Move(dt, Width);
     this->DoCollisions();
+    if (BallObj->Position.y >= Height) {
+        this->Level.Load("level_data", this->Width, this->Height / 2);
+        Player->Size = PLAYER_SIZE;
+        Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
+        BallObj->Reset(Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -(BALL_RADIUS * 2.0f)), INITIAL_BALL_VELOCITY);
+    }
 }
 
 void Game::Render() {
