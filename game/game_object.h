@@ -9,7 +9,6 @@ public:
     // object state
     glm::vec2   Position, Size, Velocity;
     glm::vec3   Color;
-    float       Rotation;
     bool        Destroyed;
     // constructor(s)
     GameObject();
