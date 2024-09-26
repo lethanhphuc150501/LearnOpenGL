@@ -6,6 +6,7 @@ GameObject::GameObject()
 GameObject::GameObject(glm::vec2 pos, glm::vec2 size, glm::vec3 color, glm::vec2 velocity)
     : Position(pos), Size(size), Velocity(velocity), Color(color), Destroyed(false) {}
 
-void GameObject::Draw(SpriteRenderer &renderer) {
-    renderer.DrawSprite(this->Position, this->Size, this->Color);
+void GameObject::Draw() {
+    SpriteRenderer* renderer = SpriteRenderer::getRenderer();
+    renderer->DrawSprite(this->Position, this->Size, this->Color);
 }

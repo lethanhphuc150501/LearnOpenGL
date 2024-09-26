@@ -5,13 +5,25 @@
 #include <GLFW/glfw3.h>
 #include "sprite_renderer.h"
 
-SpriteRenderer::SpriteRenderer(Shader* shader) {
-    this->shader = shader;
+SpriteRenderer* SpriteRenderer::instance = nullptr;
+
+SpriteRenderer::SpriteRenderer() {
+    this->shader = new Shader("sprite.vs", "sprite.fs");
     this->initRenderData();
 }
 
 SpriteRenderer::~SpriteRenderer() {
     glDeleteVertexArrays(1, &this->quadVAO);
+    delete this->shader;
+}
+
+SpriteRenderer* SpriteRenderer::getRenderer() {
+    if (!instance) instance = new SpriteRenderer();
+    return instance;
+}
+
+Shader* SpriteRenderer::getShader() {
+    return this->shader;
 }
 
 void SpriteRenderer::initRenderData() {

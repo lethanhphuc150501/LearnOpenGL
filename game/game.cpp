@@ -6,9 +6,6 @@
 #include "sprite_renderer.h"
 #include "ball.h"
 
-static SpriteRenderer* Renderer = NULL;
-static Shader* sprite = NULL;
-
 // Initial size of the player paddle
 const glm::vec2 PLAYER_SIZE(100.0f, 20.0f);
 // Initial velocity of the player paddle
@@ -34,18 +31,16 @@ Direction VectorDirection(glm::vec2 target);
 Game::Game(unsigned int width, unsigned int height): State(GAME_ACTIVE), Keys(), Width(width), Height(height) {}
 
 Game::~Game() {
-    if (sprite != NULL) delete sprite;
-    if (Renderer != NULL) delete Renderer;
     if (Player != NULL) delete Player;
     if (BallObj != NULL) delete BallObj;
 }
 
 void Game::Init() {
-    sprite = new Shader("sprite.vs", "sprite.fs");
+    SpriteRenderer* Renderer = SpriteRenderer::getRenderer();
+    Shader* sprite = Renderer->getShader();
     glm::mat4 proj = glm::ortho(0.0f, static_cast<float>(Width), static_cast<float>(Height), 0.0f, -1.0f, 1.0f);
     sprite->use();
     sprite->setMat4("projection", proj);
-    Renderer = new SpriteRenderer(sprite);
 
     this->Level.Load("level_data", Width, Height / 2);
 
@@ -88,9 +83,9 @@ void Game::Update(float dt) {
 
 void Game::Render() {
     if (State == GAME_ACTIVE) {
-        this->Level.Draw(*Renderer);
-        Player->Draw(*Renderer);
-        BallObj->Draw(*Renderer);
+        this->Level.Draw();
+        Player->Draw();
+        BallObj->Draw();
     }
 }
 
