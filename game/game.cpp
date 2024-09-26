@@ -6,18 +6,6 @@
 #include "sprite_renderer.h"
 #include "ball.h"
 
-// Initial size of the player paddle
-const glm::vec2 PLAYER_SIZE(100.0f, 20.0f);
-// Initial velocity of the player paddle
-const float PLAYER_VELOCITY(500.0f);
-GameObject *Player = NULL;
-
-// Initial velocity of the Ball
-const glm::vec2 INITIAL_BALL_VELOCITY(100.0f, -350.0f);
-// Radius of the ball object
-const float BALL_RADIUS = 12.5f;
-Ball *BallObj = NULL;
-
 enum Direction {
     UP,
     RIGHT,
@@ -25,15 +13,23 @@ enum Direction {
     LEFT
 };
 typedef std::tuple<bool, Direction> Collision;
-Collision CheckCollision(Ball &ball, GameObject &obj);
-Direction VectorDirection(glm::vec2 target);
 
-Game::Game(unsigned int width, unsigned int height): State(GAME_ACTIVE), Keys(), Width(width), Height(height) {}
+static Collision CheckCollision(Ball &ball, GameObject &obj);
+static Direction VectorDirection(glm::vec2 target);
 
-Game::~Game() {
-    if (Player != NULL) delete Player;
-    if (BallObj != NULL) delete BallObj;
+Game::Game(unsigned int width, unsigned int height) {
+    this->State = GAME_ACTIVE;
+    this->Width = width;
+    this->Height = height;
+
+    glm::vec2 playerPos = glm::vec2(Width / 2.0f - PLAYER_SIZE.x / 2.0f, Height - PLAYER_SIZE.y);
+    this->Player = GameObject(playerPos, PLAYER_SIZE, glm::vec3(1.0f, 0.0f, 0.0f));
+    
+    glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, - BALL_RADIUS * 2.0f);
+    this->BallObj = Ball(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY);
 }
+
+Game::~Game() {}
 
 void Game::Init() {
     SpriteRenderer* Renderer = SpriteRenderer::getRenderer();
@@ -43,77 +39,71 @@ void Game::Init() {
     sprite->setMat4("projection", proj);
 
     this->Level.Load("level_data", Width, Height / 2);
-
-    glm::vec2 playerPos = glm::vec2(Width / 2.0f - PLAYER_SIZE.x / 2.0f, Height - PLAYER_SIZE.y);
-    Player = new GameObject(playerPos, PLAYER_SIZE, glm::vec3(1.0f, 0.0f, 0.0f));
-
-    glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, - BALL_RADIUS * 2.0f);
-    BallObj = new Ball(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY);
 }
 
 void Game::ProcessInput(float dt) {
     if (State == GAME_ACTIVE) {
         float dx = PLAYER_VELOCITY * dt;
         if (Keys[GLFW_KEY_A] || Keys[GLFW_KEY_LEFT]) {
-            if (Player->Position.x >= 0.0f) {
-                Player->Position.x -= dx;
-                if (BallObj->Stuck) BallObj->Position.x -= dx;
+            if (Player.Position.x >= 0.0f) {
+                Player.Position.x -= dx;
+                if (BallObj.Stuck) BallObj.Position.x -= dx;
             }
         }
         if (Keys[GLFW_KEY_D] || Keys[GLFW_KEY_RIGHT]) {
-            if (Player->Position.x <= Width - Player->Size.x) {
-                Player->Position.x += dx;
-                if (BallObj->Stuck) BallObj->Position.x += dx;
+            if (Player.Position.x <= Width - Player.Size.x) {
+                Player.Position.x += dx;
+                if (BallObj.Stuck) BallObj.Position.x += dx;
             }
         }
-        if (Keys[GLFW_KEY_SPACE]) BallObj->Stuck = false;
+        if (Keys[GLFW_KEY_SPACE]) BallObj.Stuck = false;
     }
 }
 
 void Game::Update(float dt) {
-    BallObj->Move(dt, Width);
+    BallObj.Move(dt, Width);
     this->DoCollisions();
-    if (BallObj->Position.y >= Height) {
+    if (BallObj.Position.y >= Height) {
         this->Level.Load("level_data", this->Width, this->Height / 2);
-        Player->Size = PLAYER_SIZE;
-        Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
-        BallObj->Reset(Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -(BALL_RADIUS * 2.0f)), INITIAL_BALL_VELOCITY);
+        Player.Size = PLAYER_SIZE;
+        Player.Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
+        BallObj.Reset(Player.Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -(BALL_RADIUS * 2.0f)), INITIAL_BALL_VELOCITY);
     }
 }
 
 void Game::Render() {
     if (State == GAME_ACTIVE) {
         this->Level.Draw();
-        Player->Draw();
-        BallObj->Draw();
+        Player.Draw();
+        BallObj.Draw();
     }
 }
 
 void Game::DoCollisions() {
     for (GameObject &box : this->Level.Bricks) {
         if (!box.Destroyed) {
-            Collision check = CheckCollision(*BallObj, box);
+            Collision check = CheckCollision(BallObj, box);
             if (std::get<0>(check)) {
                 box.Destroyed = true;
                 Direction dir = std::get<1>(check);
-                if (dir == LEFT || dir == RIGHT) BallObj->Velocity.x = - BallObj->Velocity.x; // reverse x
-                else BallObj->Velocity.y = - BallObj->Velocity.y; // reverse y
+                if (dir == LEFT || dir == RIGHT) BallObj.Velocity.x = - BallObj.Velocity.x; // reverse x
+                else BallObj.Velocity.y = - BallObj.Velocity.y; // reverse y
             }
         }
     }
-    Collision result = CheckCollision(*BallObj, *Player);
-    if (!BallObj->Stuck && std::get<0>(result)) {
+    Collision result = CheckCollision(BallObj, Player);
+    if (!BallObj.Stuck && std::get<0>(result)) {
         // check where it hit the board, and change velocity
-        float centerBoard = Player->Position.x + Player->Size.x / 2.0f;
-        float centerBall  = BallObj->Position.x + BallObj->Radius;
+        float centerBoard = Player.Position.x + Player.Size.x / 2.0f;
+        float centerBall  = BallObj.Position.x + BallObj.Radius;
         float distance = centerBall - centerBoard;
-        float percentage = distance / (Player->Size.x / 2.0f);
+        float percentage = distance / (Player.Size.x / 2.0f);
         // then move accordingly
         float strength = 2.0f;
-        glm::vec2 oldVelocity = BallObj->Velocity;
-        BallObj->Velocity.x = INITIAL_BALL_VELOCITY.x * percentage * strength;
-        BallObj->Velocity.y = - 1.0f * abs(BallObj->Velocity.y);
-        BallObj->Velocity = glm::normalize(BallObj->Velocity) * glm::length(oldVelocity);
+        glm::vec2 oldVelocity = BallObj.Velocity;
+        BallObj.Velocity.x = INITIAL_BALL_VELOCITY.x * percentage * strength;
+        BallObj.Velocity.y = - 1.0f * abs(BallObj.Velocity.y);
+        BallObj.Velocity = glm::normalize(BallObj.Velocity) * glm::length(oldVelocity);
     }
 }
 
