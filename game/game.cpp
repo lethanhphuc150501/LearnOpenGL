@@ -32,12 +32,7 @@ Game::Game(unsigned int width, unsigned int height) {
 Game::~Game() {}
 
 void Game::Init() {
-    SpriteRenderer* Renderer = SpriteRenderer::getRenderer();
-    Shader* sprite = Renderer->getShader();
-    glm::mat4 proj = glm::ortho(0.0f, static_cast<float>(Width), static_cast<float>(Height), 0.0f, -1.0f, 1.0f);
-    sprite->use();
-    sprite->setMat4("projection", proj);
-
+    SpriteRenderer::SetProjection(this->Width, this->Height);
     this->Level.Load("level_data", Width, Height / 2);
 }
 

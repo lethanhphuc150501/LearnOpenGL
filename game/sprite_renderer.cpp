@@ -22,10 +22,6 @@ SpriteRenderer* SpriteRenderer::getRenderer() {
     return instance;
 }
 
-Shader* SpriteRenderer::getShader() {
-    return this->shader;
-}
-
 void SpriteRenderer::initRenderData() {
     unsigned int VBO;
     float vertices[] = {
@@ -47,16 +43,22 @@ void SpriteRenderer::initRenderData() {
 }
 
 void SpriteRenderer::DrawSprite(glm::vec2 position, glm::vec2 size, glm::vec3 color) {
-    this->shader->use();
+    getRenderer()->shader->use();
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(position, 0.0f));
     model = glm::translate(model, glm::vec3(0.5 * size.x, 0.5 * size.y, 0.0));
     model = glm::translate(model, glm::vec3(-0.5 * size.x, -0.5 * size.y, 0.0));
     model = glm::scale(model, glm::vec3(size, 1.0f));
-    shader->setMat4("model", model);
-    shader->setVec3("spriteColor", color);
+    getRenderer()->shader->setMat4("model", model);
+    getRenderer()->shader->setVec3("spriteColor", color);
 
-    glBindVertexArray(this->quadVAO);
+    glBindVertexArray(getRenderer()->quadVAO);
     glDrawArrays(GL_QUADS, 0, 4);
     glBindVertexArray(0);
+}
+
+void SpriteRenderer::SetProjection(unsigned int width, unsigned int height) {
+    glm::mat4 proj = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
+    getRenderer()->shader->use();
+    getRenderer()->shader->setMat4("projection", proj);
 }

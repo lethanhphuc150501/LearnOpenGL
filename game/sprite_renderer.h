@@ -13,11 +13,11 @@ private:
     unsigned int quadVAO;
     void initRenderData();
     SpriteRenderer();
+    static SpriteRenderer* getRenderer();
 public:
     ~SpriteRenderer();
-    void DrawSprite(glm::vec2 position, glm::vec2 size = glm::vec2(10.0f, 10.0f), glm::vec3 color = glm::vec3(1.0f));
-    static SpriteRenderer* getRenderer();
-    Shader* getShader();
+    static void SetProjection(unsigned int width, unsigned int height);
+    static void DrawSprite(glm::vec2 position, glm::vec2 size = glm::vec2(10.0f, 10.0f), glm::vec3 color = glm::vec3(1.0f));
 };
 
 #endif
